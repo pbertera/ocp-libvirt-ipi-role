@@ -1,0 +1,48 @@
+- name: Access information
+  tags: install
+  ignore_errors: yes
+  block:
+    - name: Get Web Console URL OCP
+      shell: "{{ ocp_client_bin_dir }}/oc get route -n openshift-console console -o custom-columns=url:spec.host --no-headers=true"
+      register: webconsoleurl
+
+    - name: Get kubeadmin password
+      shell: "cat {{ ocp_install_path }}/install/auth/kubeadmin-password"
+      register: kubeadminpass
+
+    - name: OpenShift Web Console access
+      debug:
+        msg:
+          - "                                                                                                        "
+          - "                                                                                                        "
+          - "   ***********************************************************************************************      "
+          - "                                         WEB CONSOLE ACCESS                                             "
+          - "   ***********************************************************************************************      "
+          - "                                                                                                        "
+          - "   https://{{ webconsoleurl.stdout }}      "
+          - "                                                                                                        "
+          - "                                                                                                        "
+          - "   Username: kubeadmin     Password: {{ kubeadminpass.stdout  }}                                            "
+          - "                                                                                                        "
+          - "   ***********************************************************************************************      "
+      when: not ocp_create_users
+
+    - name: OpenShift Web Console access
+      debug:
+        msg:
+          - "                                                                                                        "
+          - "                                                                                                        "
+          - "   ***********************************************************************************************      "
+          - "                                         WEB CONSOLE ACCESS                                             "
+          - "   ***********************************************************************************************      "
+          - "                                                                                                        "
+          - "   https://{{ webconsoleurl.stdout }}     "
+          - "                                                                                                        "
+          - "                                                                                                        "
+          - "   htpasswd_provider - Cluster Admin         Username: clusteradmin  Password: {{ ocp_clusteradmin_password }} "
+          - "   htpasswd_provider - Cluster Readonly      Username: viewuser      Password: {{ ocp_users_password }} "
+          - "   htpasswd_provider - Regular User (1-25)   Username: userXX        Password: {{ ocp_users_password }} "
+          - "   kube:admin        - system:admin          Username: kubeadmin     Password: {{ kubeadminpass.stdout  }}  "
+          - "                                                                                                        "
+          - "   ***********************************************************************************************      "
+      when: ocp_create_users  == "true"
